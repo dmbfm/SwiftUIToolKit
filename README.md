@@ -14,15 +14,14 @@ Example usage:
 
 ```swift
 struct Example: View {
-        @State var first = "Hello,"
-        @State var second = "World!"
-        var body: some View {
-            List {
-                TextFieldBindless("Hello", text: first) { first = $0 }                
-                TextFieldBindless("Hello", text: second) { second = $0 }
-            }
-            .listStyle(.sidebar)
+    @State var first = "Hello,"
+    @State var second = "World!"
+    var body: some View {
+        List {
+            TextFieldBindless("Hello", text: first) { first = $0 }                
+            TextFieldBindless("World", text: second) { second = $0 }
         }
     }
+}
 ```
 
