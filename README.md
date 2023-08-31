@@ -18,11 +18,8 @@ struct Example: View {
         @State var second = "World!"
         var body: some View {
             List {
-                TextFieldBindless("Hello", text: first) { first = $0 }
-                    .tag(0)
-                
+                TextFieldBindless("Hello", text: first) { first = $0 }                
                 TextFieldBindless("Hello", text: second) { second = $0 }
-                    .tag(1)
             }
             .listStyle(.sidebar)
         }
