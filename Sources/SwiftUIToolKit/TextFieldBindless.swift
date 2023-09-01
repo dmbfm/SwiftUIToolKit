@@ -56,6 +56,10 @@ extension TextFieldBindless {
                     isEditing = true
                 } else if isEditing == true {
                     self.onCommit(editingText)
+                    // If we don't do this we get a flicker of the
+                    // old value of `text` after the commit. This is
+                    // because the value will only be updated after
+                    // the focus has been updated, causing a small delay.
                     DispatchQueue.main.asyncAfter(deadline: .now()) {
                         isEditing = false
                     }
