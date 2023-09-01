@@ -7,10 +7,14 @@
 
 import SwiftUI
 
+
+
 public struct TextFieldBindless<Label: View>: View {
     var label: () -> Label
     var text: String
     var onCommit: (String) -> ()
+    
+    var discardOnExitCommandFlag = true
     
     @FocusState private var focus: Bool
     @State private var editingText: String = ""
@@ -59,9 +63,20 @@ extension TextFieldBindless {
             }
     }
     
-    func escKeyHandler() {
-        focus = false
-        isEditing = false
+    public func escKeyHandler() {
+        if discardOnExitCommandFlag {
+            focus = false
+            isEditing = false
+        }
+    }
+}
+
+
+extension TextFieldBindless {
+    public func disableDiscardOnExitCommand() -> some View {
+        var result = self
+        result.discardOnExitCommandFlag = false
+        return result
     }
 }
 
@@ -75,6 +90,7 @@ struct TextFieldBindless_Previews: PreviewProvider {
                     .tag(0)
                 
                 TextFieldBindless("Hello", text: second) { second = $0 }
+                    .disableDiscardOnExitCommand()
                     .tag(1)
             }
             .listStyle(.sidebar)

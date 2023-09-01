@@ -8,7 +8,10 @@ that I will write as needed.
 ## TextFieldBindless
 
 A bindless `TextField`. Its a wrapper around the regular `TextField` that uses a callback closure to 
-modify the input value instead of a binding.
+modify the input value instead of a binding. 
+
+The default behavior of this component is to discard an edit on exit command (i.e., when the ESC key is pressed on macOS).
+To disable this, use the `disableDiscardOnExitCommand` modifier.
 
 Example usage:
 
@@ -20,6 +23,7 @@ struct Example: View {
         List {
             TextFieldBindless("Hello", text: first) { first = $0 }                
             TextFieldBindless("World", text: second) { second = $0 }
+                .disableDiscardOnExitCommand()
         }
     }
 }
