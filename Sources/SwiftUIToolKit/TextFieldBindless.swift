@@ -1,5 +1,5 @@
 //
-//  SwiftUIView.swift
+//  TextFieldBindless.swift
 //
 //
 //  Created by Daniel Fortes on 31/08/23.
@@ -14,8 +14,8 @@ import SwiftUI
 ///  The edited string is stored in the control's state. When the user has
 ///  finished editing, either by submitting (e.g., pressing the return key on macOS),
 ///  or by the TextField losing its focus, the new value is passed to the `onCommit`
-///  callback. 
-/// 
+///  callback.
+///
 ///  Additionaly, if the activates the "exit command" (e.g., pressing the ESC key on macOS),
 ///  the editted value is discarded. This can be configured by using the `discardOnExitCommand`
 ///  modifier. The default behavior is equivalet to `.discardOnExitCommand(true)`.
@@ -23,15 +23,15 @@ import SwiftUI
 ///  The focus of the `TextFieldBindless` can additionally be controlled via the `focused` modifier.
 ///
 ///  Example usage:
-/// 
+///
 ///  ```swift
 /// struct Example: View {
-///         
+///
 ///         struct Item: Identifiable {
 ///             var id = UUID()
 ///             var name: String
 ///         }
-///         
+///
 ///         @State var items: [Item] = [
 ///             "Arya Stark",
 ///             "Frodo Baggins",
@@ -54,10 +54,10 @@ import SwiftUI
 ///             "Daenerys Targaryen",
 ///             "Indiana Jones"
 ///         ].map { Item(name: $0) }
-///         
+///
 ///         @State var focusedItem: UUID?
 ///         @State var selectedItem: UUID?
-///         
+///
 ///         var body: some View {
 ///             VStack {
 ///                 List(selection: $selectedItem) {
@@ -72,7 +72,7 @@ import SwiftUI
 ///                         print("Item = \(randomItem.name)")
 ///                         self.focusedItem = randomItem.id
 ///                     }
-///                     
+///
 ///                 }
 ///             }
 ///         }
@@ -82,50 +82,48 @@ import SwiftUI
 public struct TextFieldBindless<Label: View>: View {
     var label: () -> Label
     var text: String
-    var onCommit: (String) -> ()
-    
-    
+    var onCommit: (String) -> Void
+
     var externalFocus: Binding<Bool>?
-    
+
     var discardOnExitCommandFlag = true
-    
+
     @FocusState private var focus: Bool
     @State private var editingText: String = ""
     @State private var isEditing = false
-    
-    
-    public init(label: @escaping () -> Label, text: String, onCommit: @escaping (String) -> ()) {
+
+    public init(label: @escaping () -> Label, text: String, onCommit: @escaping (String) -> Void) {
         self.label = label
         self.text = text
         self.onCommit = onCommit
     }
-    
-    public init<S: StringProtocol>(_ labelText: S, text: String, onCommit: @escaping (String) -> ()) where Label == Text {
-        self.label = { Text(labelText) }
+
+    public init<S: StringProtocol>(_ labelText: S, text: String, onCommit: @escaping (String) -> Void) where Label == Text {
+        label = { Text(labelText) }
         self.text = text
         self.onCommit = onCommit
     }
 }
 
-extension TextFieldBindless {
-    public var body: some View {
-        TextField(text: isEditing ? $editingText : .constant(text), label: { Text("\(focus.description)")})
+public extension TextFieldBindless {
+    var body: some View {
+        TextField(text: isEditing ? $editingText : .constant(text), label: { Text("\(focus.description)") })
             .focused($focus, equals: true)
-#if canImport(AppKit)
+        #if canImport(AppKit)
             .onExitCommand { escKeyHandler() }
-#endif
+        #endif
             .onAppear {
                 if let externalFocus = externalFocus {
                     self.focus = externalFocus.wrappedValue
                 }
-#if canImport(AppKit)
-                NSEvent.addLocalMonitorForEvents(matching: .keyDown) { evt in
-                    if evt.keyCode == 53 {
-                        escKeyHandler()
+                #if canImport(AppKit)
+                    NSEvent.addLocalMonitorForEvents(matching: .keyDown) { evt in
+                        if evt.keyCode == 53 {
+                            escKeyHandler()
+                        }
+                        return evt
                     }
-                    return evt
-                }
-#endif
+                #endif
             }
             .onChange(of: focus) { value in
                 if value {
@@ -151,8 +149,8 @@ extension TextFieldBindless {
                 }
             }
     }
-    
-    public func escKeyHandler() {
+
+    func escKeyHandler() {
         if discardOnExitCommandFlag {
             focus = false
             isEditing = false
@@ -161,35 +159,32 @@ extension TextFieldBindless {
 }
 
 public extension TextFieldBindless {
-    /// Controls the focus of the `TextFieldBindless` control. 
+    /// Controls the focus of the `TextFieldBindless` control.
     func focused<FocusValueType: Hashable>(focus: Binding<FocusValueType?>, equal: FocusValueType) -> some View {
         TextFieldBindlessFocusable(content: self, focusValue: focus, focusEqual: equal)
     }
 }
 
-
-extension TextFieldBindless {
+public extension TextFieldBindless {
     /// If called with `false`, will disable the default behavior of cancelling the current edit when the user
     /// issues an exit comment (e.g., by pressing the escape key on macOS).
-    public func discardOnExitCommand(_ value: Bool) -> Self {
+    func discardOnExitCommand(_ value: Bool) -> Self {
         var result = self
         result.discardOnExitCommandFlag = value
         return result
     }
 }
 
-
-fileprivate struct TextFieldBindlessFocusable<Label: View, FocusValueType: Hashable>: View {
-    
+private struct TextFieldBindlessFocusable<Label: View, FocusValueType: Hashable>: View {
     let content: TextFieldBindless<Label>
-    
+
     @Binding var focusValue: FocusValueType?
     var focusEqual: FocusValueType
-    
+
     @State var isFocused = false
-    
+
     public var body: some View {
-        var result  = content
+        var result = content
         result.externalFocus = $isFocused
         return result
             .onAppear {
@@ -214,12 +209,12 @@ struct TextFieldBindless_Previews: PreviewProvider {
         @State var second = "World!"
         @State var firstFocus = true
         @State var secondFocus = true
-        
+
         struct Item: Identifiable {
             var id = UUID()
             var name: String
         }
-        
+
         @State var items: [Item] = [
             "Arya Stark",
             "Frodo Baggins",
@@ -240,12 +235,12 @@ struct TextFieldBindless_Previews: PreviewProvider {
             "James Bond",
             "Walter White",
             "Daenerys Targaryen",
-            "Indiana Jones"
+            "Indiana Jones",
         ].map { Item(name: $0) }
-        
+
         @State var focusedItem: UUID?
         @State var selectedItem: UUID?
-        
+
         var body: some View {
             VStack {
                 List(selection: $selectedItem) {
@@ -260,12 +255,11 @@ struct TextFieldBindless_Previews: PreviewProvider {
                         print("Item = \(randomItem.name)")
                         self.focusedItem = randomItem.id
                     }
-                    
                 }
             }
         }
     }
-    
+
     static var previews: some View {
         Inner()
     }
